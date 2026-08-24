@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sat Set Tap — Data View</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ── Data View tambahan ── */
+    .nav-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+    .nav-tab {
+      padding: .6rem 1.2rem;
+      font-family: 'Space Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: transparent;
+      color: var(--dim);
+      transition: all .2s;
+      margin-bottom: -1px;
+    }
+    .nav-tab:hover  { color: var(--text); }
+    .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .filter-bar {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .filter-btn {
+      padding: .3rem .7rem;
+      font-family: 'Space Mono', monospace;
+      font-size: .58rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--dim);
+      transition: all .2s;
+    }
+    .filter-btn:hover  { border-color: var(--accent); color: var(--accent); }
+    .filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--tog-abg); }
+    .filter-btn.deny   { border-color: var(--deny); color: var(--deny); background: var(--badge-dbg); }
+    .filter-btn.warn   { border-color: var(--warn); color: var(--warn); background: var(--badge-wbg); }
+
+    .checkin-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+    .checkin-modal.show { display: flex; }
+    .checkin-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 420px;
+    }
+    .checkin-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .checkin-uid {
+      font-size: .65rem;
+      color: var(--dim);
+      margin-bottom: 1rem;
+      padding: .5rem .75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+    .checkin-field { margin-bottom: .75rem; }
+    .checkin-field label {
+      display: block;
+      font-size: .55rem;
+      color: var(--muted);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: .3rem;
+    }
+    .checkin-field input,
+    .checkin-field select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: .5rem .75rem;
+      font-family: 'Space Mono', monospace;
+      font-size: .72rem;
+      outline: none;
+    }
+    .checkin-field input:focus,
+    .checkin-field select:focus { border-color: var(--accent); }
+    .checkin-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+
+    .flush-confirm-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--deny);
+      color: var(--deny);
+      padding: .5rem .75rem;
+      font-family: 'Space Mono', monospace;
+      font-size: .72rem;
+      outline: none;
+      margin-top: .5rem;
+      letter-spacing: .08em;
+    }
+    .manual-badge {
+      display: inline-block;
+      padding: .1rem .35rem;
+      font-size: .5rem;
+      background: rgba(4,165,229,.12);
+      color: var(--info);
+      border: 1px solid var(--info);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: .3rem;
+    }
+    .pct-bar {
+      height: 4px;
+      background: var(--border);
+      margin: .5rem 0;
+      border-radius: 2px;
+    }
+    .pct-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width .5s;
+    }
+    .stats-mini {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px,1fr));
+      gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    .stats-mini-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: .75rem 1rem;
+    }
+    .stats-mini-label {
+      font-size: .5rem;
+      color: var(--muted);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: .2rem;
+    }
+    .stats-mini-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .stats-mini-sub { font-size: .55rem; color: var(--dim); margin-top: .2rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header>
+    <div class="logo">Sat<span>Set</span> Tap <span style="font-size:.9rem;color:var(--dim);font-weight:400">/ Data View</span></div>
+    <div class="header-actions">
+      <a href="/" class="btn" style="text-decoration:none">← Ops View</a>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+      <div class="live-pill">
+        <div class="dot" id="dot"></div>
+        <span id="ws-lbl">connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Mini stats bar ─────────────────────────────────── -->
+  <div class="stats-mini" id="stats-mini">
+    <div class="stats-mini-card">
+      <div class="stats-mini-label">Terdaftar</div>
+      <div class="stats-mini-val" id="m-reg" style="color:var(--text)">0</div>
+    </div>
+    <div class="stats-mini-card">
+      <div class="stats-mini-label">Sudah Masuk</div>
+      <div class="stats-mini-val" id="m-entry" style="color:var(--accent)">0</div>
+      <div class="pct-bar"><div class="pct-bar-fill" id="m-pct-bar" style="width:0%"></div></div>
+      <div class="stats-mini-sub" id="m-pct">0% kehadiran</div>
+    </div>
+    <div class="stats-mini-card">
+      <div class="stats-mini-label">Belum Masuk</div>
+      <div class="stats-mini-val" id="m-belum" style="color:var(--muted)">0</div>
+    </div>
+    <div class="stats-mini-card">
+      <div class="stats-mini-label">Total Tap</div>
+      <div class="stats-mini-val" id="m-tap" style="color:var(--dim)">0</div>
+    </div>
+  </div>
+
+  <!-- ── Tabs ───────────────────────────────────────────── -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('peserta', this)">👤 Peserta</button>
+    <button class="nav-tab" onclick="switchTab('log', this)">📋 Event Log</button>
+    <button class="nav-tab" onclick="switchTab('kontrol', this)">⚙ Kontrol</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
+       TAB 1 — PESERTA
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-peserta" class="tab-content active">
+  <div class="section-box">
+
+    <!-- Actions -->
+    <div class="section-header" style="margin-bottom:1rem">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <label class="btn" for="csv-upload">⬆ Import CSV</label>
+        <input type="file" id="csv-upload" accept=".csv" style="display:none" onchange="importCsv(this)">
+        <button class="btn" onclick="exportPeserta()">⬇ Export Peserta</button>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="search" class="input-field" placeholder="Cari nama atau UID..." oninput="filterPeserta(this.value)" style="width:220px">
+        <button class="filter-btn active" data-filter="all"    onclick="setFilter('all',this)">Semua</button>
+        <button class="filter-btn"        data-filter="masuk"  onclick="setFilter('masuk',this)">Sudah Masuk</button>
+        <button class="filter-btn"        data-filter="belum"  onclick="setFilter('belum',this)">Belum Masuk</button>
+        <button class="filter-btn warn"   data-filter="habis"  onclick="setFilter('habis',this)">Token Habis</button>
+      </div>
+    </div>
+
+    <!-- Import status -->
+    <div id="import-status" style="display:none;padding:.5rem .75rem;font-size:.7rem;margin-bottom:.75rem;border:1px solid var(--border)"></div>
+
+    <!-- Summary bar -->
+    <div id="participant-summary" style="display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap"></div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>UID</th>
+            <th>Nama</th>
+            <th>Token</th>
+            <th>Status</th>
+            <th>Terakhir Masuk</th>
+            <th>Terdaftar</th>
+            <th style="text-align:right">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="peserta-body">
+          <tr><td colspan="7" class="empty-cell">Memuat data peserta...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="peserta-count" class="text-dim" style="font-size:.6rem;margin-top:.5rem"></div>
+  </div>
+  </div>
+  <!-- ══════════════════════════════════════════════════════
+       TAB 2 — EVENT LOG
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-log" class="tab-content">
+  <div class="section-box">
+    <div class="filter-bar">
+      <button class="filter-btn active" data-lf="all"      onclick="setLogFilter('all',this)">Semua</button>
+      <button class="filter-btn active" data-lf="allowed"  onclick="setLogFilter('allowed',this)">✓ Masuk</button>
+      <button class="filter-btn deny"   data-lf="denied"   onclick="setLogFilter('denied',this)">✗ Ditolak</button>
+      <button class="filter-btn"        data-lf="manual"   onclick="setLogFilter('manual',this)">📝 Manual</button>
+      <div style="margin-left:auto;display:flex;gap:.5rem">
+        <select id="gate-filter" class="input-field" style="width:130px" onchange="applyLogFilters()">
+          <option value="all">Semua Gate</option>
+        </select>
+        <button class="btn" onclick="exportLog()">⬇ Export Log</button>
+        <button class="btn" onclick="loadLog()">Refresh</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th><th>Gate</th><th>UID</th>
+            <th>Nama</th><th>Token</th><th>Waktu</th><th>CRC</th><th>Catatan</th>
+          </tr>
+        </thead>
+        <tbody id="log-body">
+          <tr><td colspan="8" class="empty-cell">Memuat log...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="log-count" class="text-dim" style="font-size:.6rem;margin-top:.5rem"></div>
+  </div>
+  </div>
+  <!-- ══════════════════════════════════════════════════════
+       TAB 3 — KONTROL
+  ══════════════════════════════════════════════════════ -->
+  <div id="tab-kontrol" class="tab-content">
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem">
+
+      <!-- Flush Event -->
+      <div class="section-box" style="margin:0">
+        <div class="section-title">🗑 Flush Event Log</div>
+        <p style="font-size:.72rem;color:var(--dim);margin-bottom:1rem;line-height:1.6">
+          Hapus semua event log dan reset status kehadiran.<br>
+          <strong style="color:var(--warn)">Data registrasi peserta tetap ada.</strong>
+        </p>
+        <p style="font-size:.65rem;color:var(--muted);margin-bottom:.4rem">Ketik <code style="color:var(--warn)">RESET_LOG</code> untuk konfirmasi:</p>
+        <input class="flush-confirm-input" id="flush-event-input" placeholder="RESET_LOG" oninput="checkFlushEvent(this)">
+        <button class="btn danger" id="flush-event-btn" onclick="flushEvent()" disabled style="margin-top:.75rem;width:100%">
+          Flush Event Log
+        </button>
+      </div>
+
+      <!-- Flush Semua -->
+      <div class="section-box" style="margin:0;border-color:var(--deny)">
+        <div class="section-title" style="color:var(--deny)">⚠ Flush Semua Data</div>
+        <p style="font-size:.72rem;color:var(--dim);margin-bottom:1rem;line-height:1.6">
+          Hapus <strong>seluruh data</strong> termasuk registrasi peserta.<br>
+          <strong style="color:var(--deny)">Aksi ini tidak bisa di-undo.</strong>
+        </p>
+        <p style="font-size:.65rem;color:var(--muted);margin-bottom:.4rem">Ketik <code style="color:var(--deny)">HAPUS_SEMUA</code> untuk konfirmasi:</p>
+        <input class="flush-confirm-input" id="flush-all-input" placeholder="HAPUS_SEMUA" oninput="checkFlushAll(this)">
+        <button class="btn danger" id="flush-all-btn" onclick="flushAll()" disabled style="margin-top:.75rem;width:100%;border-color:var(--deny);color:var(--deny)">
+          Flush Semua Data
+        </button>
+      </div>
+
+      <!-- Gate controls -->
+      <div class="section-box" style="margin:0">
+        <div class="section-title">🔒 Kontrol Gate</div>
+        <p style="font-size:.72rem;color:var(--dim);margin-bottom:1rem;line-height:1.6">
+          Kunci atau buka semua gate dari jarak jauh.
+        </p>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn danger" onclick="lockAll()" style="flex:1">Lockdown Semua</button>
+          <button class="btn" onclick="unlockAll()" style="flex:1;border-color:var(--accent);color:var(--accent)">Unlock Semua</button>
+        </div>
+        <div id="gate-status-list" style="margin-top:1rem;font-size:.65rem;color:var(--dim)">
+          Memuat status gate...
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /.wrap -->
+
+<!-- ── Manual Check-In Modal ──────────────────────────── -->
+<div class="checkin-modal" id="checkin-modal">
+  <div class="checkin-box">
+    <div class="checkin-title">📝 Manual Check-In</div>
+    <div class="checkin-uid" id="checkin-uid-display">-</div>
+
+    <div class="checkin-field">
+      <label>Gate</label>
+      <select id="checkin-gate">
+        <option value="1">Gate 1</option>
+        <option value="2">Gate 2</option>
+        <option value="3">Gate 3</option>
+        <option value="4">Gate 4</option>
+      </select>
+    </div>
+
+    <div class="checkin-field">
+      <label>Alasan Check-In Manual</label>
+      <input id="checkin-reason" placeholder="Contoh: kartu rusak, sinyal jelek..." maxlength="100">
+    </div>
+
+    <div id="checkin-error" style="font-size:.65rem;color:var(--deny);margin-top:.25rem;display:none"></div>
+
+    <div class="checkin-actions">
+      <button class="btn" onclick="closeCheckin()">Batal</button>
+      <button class="btn" onclick="submitCheckin()" style="border-color:var(--accent);color:var(--accent)" id="checkin-submit-btn">
+        ✓ Check-In
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── State ────────────────────────────────────────────────────
+let allPeserta    = [];
+let allLog        = [];
+let currentFilter = 'all';
+let currentSearch = '';
+let currentLogFilter = 'all';
+let checkinUid    = null;
+
+// ── WebSocket ────────────────────────────────────────────────
+let ws;
+function connect() {
+  ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onopen  = () => {
+    document.getElementById('dot').classList.add('on');
+    document.getElementById('ws-lbl').textContent = 'live';
+  };
+  ws.onclose = () => {
+    document.getElementById('dot').classList.remove('on');
+    document.getElementById('ws-lbl').textContent = 'reconnecting...';
+    setTimeout(connect, 3000);
+  };
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === 'snapshot' && msg.stats) updateMiniStats(msg.stats);
+  };
+}
+connect();
+
+// ── Mini stats ───────────────────────────────────────────────
+function updateMiniStats(d) {
+  if (allPeserta.length > 0) {
+    updateMiniStatsFromPeserta();
+    document.getElementById('m-tap').textContent = d.total_tap || 0;
+    return;
+  }
+  const reg   = d.total_registered || 0;
+  const entry = d.total_entry      || 0;
+  const belum = reg - entry;
+  const pct   = reg > 0 ? Math.round((entry / reg) * 100) : 0;
+
+  document.getElementById('m-reg').textContent   = reg;
+  document.getElementById('m-entry').textContent = entry;
+  document.getElementById('m-belum').textContent = belum;
+  document.getElementById('m-tap').textContent   = d.total_tap || 0;
+  document.getElementById('m-pct').textContent   = `${pct}% kehadiran`;
+  document.getElementById('m-pct-bar').style.width = `${pct}%`;
+}
+
+function updateMiniStatsFromPeserta() {
+  const total = allPeserta.length;
+  const masuk = allPeserta.filter(p => p.last_entry && p.last_entry !== '-').length;
+  const belum = total - masuk;
+  const pct   = total > 0 ? Math.round((masuk / total) * 100) : 0;
+
+  document.getElementById('m-reg').textContent   = total;
+  document.getElementById('m-entry').textContent = masuk;
+  document.getElementById('m-belum').textContent = belum;
+  document.getElementById('m-pct').textContent   = `${pct}% kehadiran`;
+  document.getElementById('m-pct-bar').style.width = `${pct}%`;
+}
+
+// ── Tabs ─────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'log')     loadLog();
+  if (name === 'kontrol') loadGateStatus();
+}
+
+// ── Peserta ──────────────────────────────────────────────────
+async function loadPeserta() {
+  const tbody = document.getElementById('peserta-body');
+  tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Memuat...</td></tr>';
+  try {
+    const res  = await fetch('/api/register?limit=2000');
+    allPeserta = await res.json();
+    applyPesertaFilters();
+    updateMiniStatsFromPeserta();
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-cell" style="color:var(--deny)">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function filterPeserta(q) {
+  currentSearch = q.toLowerCase();
+  applyPesertaFilters();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyPesertaFilters();
+}
+
+function applyPesertaFilters() {
+  let list = allPeserta;
+
+  // Filter status
+  if (currentFilter === 'masuk') list = list.filter(p => p.last_entry && p.last_entry !== '-');
+  if (currentFilter === 'belum') list = list.filter(p => !p.last_entry || p.last_entry === '-');
+  if (currentFilter === 'habis') list = list.filter(p => parseInt(p.token_left) <= 0);
+
+  // Filter search
+  if (currentSearch) {
+    list = list.filter(p =>
+      (p.uid  || '').toLowerCase().includes(currentSearch) ||
+      (p.name || '').toLowerCase().includes(currentSearch)
+    );
+  }
+
+  renderPeserta(list);
+}
+
+function renderPeserta(list) {
+  const tbody = document.getElementById('peserta-body');
+  const count = document.getElementById('peserta-count');
+  const summary = document.getElementById('participant-summary');
+
+  // Summary bar
+  const total      = allPeserta.length;
+  const masuk      = allPeserta.filter(p => p.last_entry && p.last_entry !== '-').length;
+  const belum      = total - masuk;
+  const tokenHabis = allPeserta.filter(p => parseInt(p.token_left) <= 0).length;
+  const pct        = total > 0 ? Math.round((masuk / total) * 100) : 0;
+
+  summary.innerHTML = [
+    { label: 'Terdaftar',   val: total,       color: 'var(--dim)'    },
+    { label: 'Sudah Masuk', val: masuk,       color: 'var(--accent)' },
+    { label: 'Belum Masuk', val: belum,       color: 'var(--muted)'  },
+    { label: 'Token Habis', val: tokenHabis,  color: tokenHabis > 0 ? 'var(--warn)' : 'var(--muted)' },
+    { label: 'Kehadiran',   val: pct + '%',   color: pct >= 80 ? 'var(--accent)' : pct >= 50 ? 'var(--warn)' : 'var(--deny)' },
+  ].map(s => `
+    <div style="background:var(--bg);border:1px solid var(--border);padding:.5rem .9rem;min-width:100px">
+      <div style="font-size:.5rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.2rem">${s.label}</div>
+      <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:600;color:${s.color}">${s.val}</div>
+    </div>`).join('');
+
+  count.textContent = `Menampilkan ${list.length} dari ${total} peserta`;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">Tidak ada peserta yang cocok.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  for (const p of list) {
+    const hasEntered = p.last_entry && p.last_entry !== '-';
+    const tokenLeft  = p.token_left !== undefined ? p.token_left : '?';
+    const tokenMax   = p.token_max  !== undefined ? p.token_max  : '?';
+    const tokenEmpty = parseInt(tokenLeft) <= 0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="uid">${p.uid || '-'}</td>
+      <td>${p.name || '-'}</td>
+      <td style="color:${tokenEmpty ? 'var(--warn)' : 'var(--accent)'}">
+        ${tokenLeft}/${tokenMax}
+        ${tokenEmpty ? '<span style="font-size:.5rem;color:var(--warn);margin-left:.3rem">HABIS</span>' : ''}
+      </td>
+      <td>
+        <span class="badge ${hasEntered ? 'allowed' : 'denied_unregistered'}">
+          ${hasEntered ? 'MASUK' : 'BELUM'}
+        </span>
+      </td>
+      <td style="color:var(--dim)">${hasEntered ? p.last_entry.replace('T',' ').slice(0,19) : '-'}</td>
+      <td style="color:var(--dim)">${(p.registered_at||'-').replace('T',' ').slice(0,19)}</td>
+      <td style="text-align:right">
+        <div style="display:flex;gap:.3rem;justify-content:flex-end">
+          ${!hasEntered || !tokenEmpty ? `<button class="btn sm" style="border-color:var(--info);color:var(--info)" onclick="openCheckin('${p.uid}','${(p.name||'').replace(/'/g,"\\'")}')">Check-In</button>` : ''}
+          <button class="btn danger sm" onclick="revokeUid('${p.uid}')">Revoke</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+// ── Manual Check-In ──────────────────────────────────────────
+function openCheckin(uid, name) {
+  checkinUid = uid;
+  document.getElementById('checkin-uid-display').textContent = `${uid} — ${name}`;
+  document.getElementById('checkin-reason').value = '';
+  document.getElementById('checkin-error').style.display = 'none';
+  document.getElementById('checkin-modal').classList.add('show');
+  document.getElementById('checkin-reason').focus();
+}
+
+function closeCheckin() {
+  document.getElementById('checkin-modal').classList.remove('show');
+  checkinUid = null;
+}
+
+async function submitCheckin() {
+  const gate   = parseInt(document.getElementById('checkin-gate').value);
+  const reason = document.getElementById('checkin-reason').value.trim();
+  const errEl  = document.getElementById('checkin-error');
+  const btn    = document.getElementById('checkin-submit-btn');
+
+  if (!reason) {
+    errEl.textContent = 'Alasan wajib diisi.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = '...';
+  btn.disabled    = true;
+  errEl.style.display = 'none';
+
+  try {
+    const res  = await fetch(`/api/register/${checkinUid}/checkin`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ gate_id: gate, reason }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      closeCheckin();
+      await loadPeserta();
+      showToast(`✓ ${data.name || checkinUid} check-in manual di Gate ${gate}`, 'var(--accent)');
+    } else {
+      errEl.textContent   = data.detail || 'Gagal check-in.';
+      errEl.style.display = 'block';
+    }
+  } catch (err) {
+    errEl.textContent   = 'Error: ' + err.message;
+    errEl.style.display = 'block';
+  }
+
+  btn.textContent = '✓ Check-In';
+  btn.disabled    = false;
+}
+
+// Tutup modal kalau klik di luar box
+document.getElementById('checkin-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCheckin();
+});
+
+// ── Revoke ───────────────────────────────────────────────────
+async function revokeUid(uid) {
+  if (!confirm(`Revoke UID ${uid}?\nData peserta ini akan dihapus permanen.`)) return;
+  try {
+    const res  = await fetch(`/api/register/${uid}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`UID ${uid} berhasil di-revoke`, 'var(--accent)');
+      await loadPeserta();
+    } else {
+      showToast(data.detail || 'Gagal revoke', 'var(--deny)');
+    }
+  } catch (err) {
+    showToast('Error: ' + err.message, 'var(--deny)');
+  }
+}
+
+// ── Import / Export ──────────────────────────────────────────
+async function importCsv(input) {
+  const file   = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('import-status');
+  status.style.display = 'block';
+  status.style.color   = 'var(--dim)';
+  status.textContent   = `Mengupload ${file.name}...`;
+
+  const form = new FormData();
+  form.append('upload', file);
+  try {
+    const res  = await fetch('/api/register/import', { method: 'POST', body: form });
+    const data = await res.json();
+    if (res.ok) {
+      status.style.color = 'var(--accent)';
+      status.textContent = `✓ ${data.imported||0} peserta ditambahkan, ${data.skipped||0} dilewati — ${file.name}`;
+      await loadPeserta();
+    } else {
+      status.style.color = 'var(--deny)';
+      status.textContent = '✗ ' + (data.detail || 'Gagal import');
+    }
+  } catch (err) {
+    status.style.color = 'var(--deny)';
+    status.textContent = '✗ Error: ' + err.message;
+  }
+  input.value = '';
+  setTimeout(() => { status.style.display = 'none'; }, 6000);
+}
+
+function exportPeserta() {
+  // Bangun CSV dari data peserta yang sudah ada di memory
+  const rows = [['UID','Nama','Token Sisa','Token Max','Status','Terakhir Masuk','Terdaftar']];
+  for (const p of allPeserta) {
+    const hasEntered = p.last_entry && p.last_entry !== '-';
+    rows.push([
+      p.uid || '',
+      p.name || '',
+      p.token_left || '',
+      p.token_max  || '',
+      hasEntered ? 'Masuk' : 'Belum',
+      hasEntered ? p.last_entry.replace('T',' ').slice(0,19) : '',
+      (p.registered_at||'').replace('T',' ').slice(0,19),
+    ]);
+  }
+  downloadCsv(rows, `peserta_${dateStamp()}.csv`);
+}
+
+function exportLog() {
+  window.location.href = `/api/log/export`;
+}
+
+// ── Event Log ────────────────────────────────────────────────
+let logFilter = 'all';
+
+function setLogFilter(f, btn) {
+  logFilter = f;
+  document.querySelectorAll('.filter-btn[data-lf]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyLogFilters();
+}
+
+function applyLogFilters() {
+  const gateVal = document.getElementById('gate-filter').value;
+  let list = allLog;
+  if (logFilter === 'allowed') list = list.filter(e => e.status === 'allowed' && !e.manual);
+  if (logFilter === 'denied')  list = list.filter(e => e.status !== 'allowed');
+  if (logFilter === 'manual')  list = list.filter(e => e.manual);
+  if (gateVal !== 'all')       list = list.filter(e => String(e.gate_id) === gateVal);
+  renderLog(list);
+}
+
+async function loadLog() {
+  const tbody = document.getElementById('log-body');
+  tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">Memuat...</td></tr>';
+  try {
+    const res = await fetch('/api/log?limit=1000');
+    allLog    = await res.json();
+
+    // Populate gate filter dropdown
+    const gates   = [...new Set(allLog.map(e => e.gate_id).filter(Boolean))].sort();
+    const sel     = document.getElementById('gate-filter');
+    const current = sel.value;
+    sel.innerHTML = '<option value="all">Semua Gate</option>' +
+      gates.map(g => `<option value="${g}"${current==g?' selected':''}>Gate ${g}</option>`).join('');
+
+    applyLogFilters();
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-cell" style="color:var(--deny)">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function renderLog(list) {
+  const tbody = document.getElementById('log-body');
+  const count = document.getElementById('log-count');
+  count.textContent = `${list.length} entri`;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">Tidak ada entri yang cocok.</td></tr>';
+    return;
+  }
+
+  const STATUS_MAP = {
+    'allowed':             ['MASUK',       'allowed'],
+    'denied_unregistered': ['TDK DAFTAR',  'denied_unregistered'],
+    'denied_token_empty':  ['TOKEN HABIS', 'denied_token_empty'],
+  };
+
+  tbody.innerHTML = '';
+  for (const e of list) {
+    const [label, cls] = STATUS_MAP[e.status] || [e.status, 'allowed'];
+    const ts  = (e.server_timestamp || e.timestamp || '-').replace('T',' ').slice(0,19);
+    const tr  = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <span class="badge ${cls}">${label}</span>
+        ${e.manual ? '<span class="manual-badge">MANUAL</span>' : ''}
+      </td>
+      <td>Gate ${e.gate_id}</td>
+      <td class="uid">${e.ktp_uid}</td>
+      <td style="color:var(--dim)">${e.name || '-'}</td>
+      <td style="color:${e.status==='allowed'?'var(--accent)':'var(--warn)'}">
+        ${e.token_left!==undefined?e.token_left:'-'}/${e.token_max!==undefined?e.token_max:'-'}
+      </td>
+      <td style="font-size:.65rem">${ts}</td>
+      <td style="color:${e.crc_valid?'var(--accent)':'var(--warn)'}">${e.crc_valid?'OK':'FAIL'}</td>
+      <td style="color:var(--info);font-size:.65rem">${e.manual ? (e.manual_reason||'-') : ''}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+// ── Kontrol ───────────────────────────────────────────────────
+function checkFlushEvent(input) {
+  document.getElementById('flush-event-btn').disabled = input.value !== 'RESET_LOG';
+}
+function checkFlushAll(input) {
+  document.getElementById('flush-all-btn').disabled = input.value !== 'HAPUS_SEMUA';
+}
+
+async function flushEvent() {
+  const res = await fetch('/api/flush-event', { method: 'DELETE' });
+  if (res.ok) {
+    showToast('Event log di-flush. Registrasi tetap ada.', 'var(--accent)');
+    document.getElementById('flush-event-input').value = '';
+    document.getElementById('flush-event-btn').disabled = true;
+    allLog = [];
+    renderLog([]);
+    await loadPeserta();
+  }
+}
+
+async function flushAll() {
+  const res = await fetch('/api/flush', { method: 'DELETE' });
+  if (res.ok) {
+    showToast('Semua data di-flush.', 'var(--warn)');
+    document.getElementById('flush-all-input').value = '';
+    document.getElementById('flush-all-btn').disabled = true;
+    allPeserta = []; allLog = [];
+    renderPeserta([]); renderLog([]);
+  }
+}
+
+async function lockAll() {
+  await fetch('/api/lockdown/0', { method: 'POST' });
+  showToast('Semua gate dikunci.', 'var(--deny)');
+  loadGateStatus();
+}
+
+async function unlockAll() {
+  await fetch('/api/unlock/0', { method: 'POST' });
+  showToast('Semua gate dibuka.', 'var(--accent)');
+  loadGateStatus();
+}
+
+async function loadGateStatus() {
+  try {
+    const res  = await fetch('/api/gate-status');
+    const data = await res.json();
+    const el   = document.getElementById('gate-status-list');
+    const entries = Object.entries(data);
+    if (!entries.length) { el.textContent = 'Tidak ada gate terdaftar.'; return; }
+    el.innerHTML = entries.map(([g, s]) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border)">
+        <span>${g.replace('_',' ')}</span>
+        <span style="color:${s==='locked'?'var(--deny)':'var(--accent)'};font-weight:700;font-size:.6rem">
+          ${s === 'locked' ? '🔒 LOCKED' : '✓ OPEN'}
+        </span>
+      </div>`).join('');
+  } catch {}
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function showToast(msg, color) {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;
+    background:var(--surface);border:1px solid ${color};
+    padding:.75rem 1rem;font-size:.72rem;max-width:320px;color:${color}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function downloadCsv(rows, filename) {
+  const csv  = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function dateStamp() {
+  return new Date().toISOString().slice(0,10).replace(/-/g,'');
+}
+
+// ── Theme ─────────────────────────────────────────────────────
+function setTheme(t) {
+  const light = t === 'light';
+  document.documentElement.classList.toggle('light', light);
+  localStorage.setItem('theme', t);
+  document.getElementById('theme-btn').textContent = light ? '🌙' : '☀️';
+}
+function toggleTheme() {
+  setTheme(document.documentElement.classList.contains('light') ? 'dark' : 'light');
+}
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') setTheme('light');
+
+// ── Init ──────────────────────────────────────────────────────
+loadPeserta();
+</script>
+</body>
+</html>

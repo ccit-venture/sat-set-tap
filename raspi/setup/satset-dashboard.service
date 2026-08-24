@@ -1,0 +1,18 @@
+[Unit]
+Description=Sat Set Tap — Backend API & Dashboard
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+Type=simple
+User=rezan
+WorkingDirectory=/home/rezan/TheGate
+ExecStart=/usr/bin/python3 -m backend.main
+Restart=always
+RestartSec=5
+EnvironmentFile=/home/rezan/TheGate/backend/.env
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

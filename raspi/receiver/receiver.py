@@ -24,7 +24,7 @@ STATUS_ICON = {
 
 # Queue untuk response yang perlu dikirim balik ke gateway
 response_queue = queue.Queue()
-
+detector = None
 
 def send_response_worker(ser):
     """
@@ -84,11 +84,22 @@ def handle_packet(hex_str: str, rssi: int, db: GateRedis):
     if packet.command != Command.TAP_REQUEST:
         return
 
+    if detector is not None and detector.is_locked(packet.gate_id):
+        log.warning(f"🔒 BLOCKED | Gate {packet.gate_id} sedang lockdown | UID: {packet.ktp_uid}")
+        send_response(Command.RESPONSE_DENY, packet.gate_id, packet.ktp_uid)
+        return
+
     result = db.store_tap(packet, rssi=rssi)
 
     # Hitung server-side processing latency
     latency_ms = int((time.time() - received_at) * 1000)
     db.store_latency(packet.gate_id, latency_ms)
+    if detector is not None:
+        detector.process_event({
+            "status": result["status"],
+            "ktp_uid": result.get("ktp_uid", packet.ktp_uid),
+            "gate_id": packet.gate_id,
+        })
     icon   = STATUS_ICON.get(result["status"], "?")
     rssi_w = " ⚡LEMAH" if rssi < -100 else ""
 
@@ -155,6 +166,7 @@ def run_serial(db: GateRedis, port: str, baudrate=115200):
     writer.start()
 
     # Start lockdown polling thread
+    global detector
     detector = AnomalyDetector(db.r)
     poll_thread = threading.Thread(target=_poll_lockdown, args=(ser, detector), daemon=True)
     poll_thread.start()
@@ -212,13 +224,12 @@ def run_mock(db: GateRedis):
 
     # Register beberapa UID dulu untuk test
     for uid in MOCK_UIDS[:3]:
-        key = f"gate:registered:{uid}"
-        db.r.hset(key, "uid", uid)
-        db.r.hset(key, "name", f"Test {uid[:4]}")
-        db.r.hset(key, "token_max", 3)
-        db.r.hset(key, "token_left", 3)
-        db.r.hset(key, "registered_at", time.strftime("%Y-%m-%dT%H:%M:%S"))
-        db.r.hset(key, "last_entry", "-")
+        db.r.hset(f"gate:registered:{uid}", mapping={
+            "uid": uid, "name": f"Test {uid[:4]}",
+            "token_max": 3, "token_left": 3,
+            "registered_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+            "last_entry": "-",
+        })
         db.r.sadd("gate:registered:all", uid)
     log.info(f"Mock: {len(MOCK_UIDS[:3])} UID di-register\n")
 
@@ -262,11 +273,9 @@ def main():
     parser.add_argument("--redis-port", type=int, default=6379)
     parser.add_argument("--redis-pass", default=None)
     parser.add_argument("--baud",       type=int, default=115200)
-    parser.add_argument("--disable-token", action="store_true", help="Nonaktifkan sistem token untuk stress test")
     args = parser.parse_args()
 
-    db = GateRedis(host=args.redis_host, port=args.redis_port, password=args.redis_pass,
-                   token_enabled=not args.disable_token)
+    db = GateRedis(host=args.redis_host, port=args.redis_port, password=args.redis_pass)
     if not db.ping():
         log.error("Redis tidak jalan!")
         sys.exit(1)

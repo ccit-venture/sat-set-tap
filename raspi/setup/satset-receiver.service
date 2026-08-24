@@ -1,0 +1,18 @@
+[Unit]
+Description=Sat Set Tap — Receiver (LoRa → Redis)
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+Type=simple
+User=rezan
+WorkingDirectory=/home/rezan/TheGate
+ExecStart=/usr/bin/python3 receiver/receiver.py --serial /dev/ttyUSB0 --redis-pass 12345
+Restart=always
+RestartSec=5
+EnvironmentFile=/home/rezan/TheGate/backend/.env
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

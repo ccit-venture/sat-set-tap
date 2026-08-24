@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sat Set Tap — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <header>
+    <div class="logo">Sat<span>Set</span> Tap</div>
+    <div class="header-actions">
+    <a href="/data.html" class="btn" style="text-decoration:none">Data View →</a>
+      <div class="ai-badge">AI Engine</div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle theme">☀️</button>
+      <div class="live-pill">
+        <div class="dot" id="dot"></div>
+        <span id="ws-lbl">connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Stat cards ─────────────────────────────────────── -->
+  <div class="stats">
+    <div class="card" id="c-reg">
+      <div class="card-label">Terdaftar</div>
+      <div class="card-val" id="s-reg">0</div>
+      <div class="card-sub">total peserta</div>
+    </div>
+    <div class="card" id="c-entry">
+      <div class="card-label">Sudah Masuk</div>
+      <div class="card-val" id="s-entry">0</div>
+      <div class="card-sub">unique peserta</div>
+    </div>
+    <div class="card" id="c-total">
+      <div class="card-label">Total Tap</div>
+      <div class="card-val" id="s-total">0</div>
+      <div class="card-sub">semua tap</div>
+    </div>
+    <div class="card" id="c-gates">
+      <div class="card-label">Gate Online</div>
+      <div class="card-val" id="s-gates">0 / 0</div>
+      <div class="card-sub" id="s-gates-sub">—</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Waktu</div>
+      <div class="card-val" id="s-time" style="font-size:1.2rem">--:--:--</div>
+      <div class="card-sub">server time</div>
+    </div>
+  </div>
+
+  <!-- ── Load balance alert ─────────────────────────────── -->
+  <div class="alert" id="lb-alert">
+    <div class="alert-title" id="lb-title">⚠ Gate Terlalu Ramai</div>
+    <div id="lb-msg"></div>
+  </div>
+
+  <!-- ── Anomaly banner ─────────────────────────────────── -->
+  <div id="anomaly-stat" class="anomaly-stat">
+    <div>
+      <div class="anomaly-stat-title">🚨 ANOMALI TERDETEKSI</div>
+      <div id="anomaly-stat-msg" class="anomaly-stat-msg"></div>
+    </div>
+  </div>
+
+  <!-- ── Security monitor ───────────────────────────────── -->
+  <div class="anomaly-panel">
+    <div class="anomaly-header">
+      <div class="section-title">🛡 Security Monitor</div>
+      <div class="anomaly-header-actions">
+        <div class="text-dim" id="anomaly-count">0 anomali aktif</div>
+        <button class="btn danger sm" onclick="unlockAll()">Unlock Semua</button>
+      </div>
+    </div>
+    <div class="anomaly-list" id="anomaly-list">
+      <div class="no-anomaly">Tidak ada anomali — sistem aman ✓</div>
+    </div>
+  </div>
+
+  <!-- ── AI Engine ──────────────────────────────────────── -->
+  <details class="section-box collapsible">
+    <summary class="collapsible-header">⚡ AI Engine — Density Forecast &amp; Anomaly Detection</summary>
+    <div class="forecast-grid" id="forecast-grid">
+      <div class="text-muted">Menunggu data prediksi...</div>
+    </div>
+  </details>
+
+  <!-- ── Network Status ─────────────────────────────────── -->
+  <details class="section-box collapsible">
+    <summary class="collapsible-header">📡 Network Status — Latency &amp; Signal</summary>
+    <div class="forecast-grid" id="network-grid">
+      <div class="text-muted">Menunggu data jaringan...</div>
+    </div>
+  </details>
+
+  <hr class="divider">
+
+  <!-- ── Gate cards ─────────────────────────────────────── -->
+  <div class="section-title">Status Per Gate</div>
+  <div class="gates" id="gates-grid">
+    <div class="gate-card text-muted">Menunggu data...</div>
+  </div>
+
+  <!-- ── Ticker ─────────────────────────────────────────── -->
+  <div class="ticker-section" id="ticker-section">
+    <div class="ticker-entries" id="ticker-entries">
+      <div class="text-muted">Menunggu event...</div>
+    </div>
+  </div>
+
+  <!-- ── Chart ──────────────────────────────────────────── -->
+  <div class="section-box">
+    <div class="section-title" style="margin-bottom:.75rem">Frekuensi Tap (per menit)</div>
+    <div class="chart-controls" id="gate-toggles">
+      <button class="tog active" data-gate="all" onclick="setGateView('all',this)">Semua Gate</button>
+    </div>
+    <div class="chart-wrap"><canvas id="tapChart"></canvas></div>
+  </div>
+
+  <hr class="divider">
+
+</div><!-- /.wrap -->
+<script src="app.js"></script>
+</body>
+</html>
