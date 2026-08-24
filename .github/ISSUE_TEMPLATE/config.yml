@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Dokumentasi
+    url: https://github.com/ccit-venture/sat-set-tap/blob/master/docs/architecture.md
+    about: Baca dokumentasi proyek sebelum membuka issue.
+  - name: 💬 Diskusi / Tanya-Jawab
+    url: https://github.com/ccit-venture/sat-set-tap/discussions
+    about: Pertanyaan umum, cara pakai, atau ide diskusi — gunakan Discussions.
+  - name: 🔒 Laporan Keamanan
+    url: https://github.com/ccit-venture/sat-set-tap/security/advisories
+    about: Jangan buka issue publik untuk kerentanan — lihat SECURITY.md.

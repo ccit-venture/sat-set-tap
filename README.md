@@ -167,6 +167,23 @@ python3 tests/stress_test.py --gates 2 --uids 50 --duration 10
 
 ---
 
+## Kontribusi
+
+Project ini **open source** — kontribusi sangat terbuka! Cara paling cepat:
+
+1. **Fork** repository
+2. Buat branch fitur: `git checkout -b feature/nama-fitur`
+3. Jalankan test: `python3 tests/test_packet.py`
+4. Buat **Pull Request** dengan mengisi template yang sudah disediakan
+
+Panduan lengkap (clone, sinkron upstream, gaya commit, aturan dokumentasi) →
+[CONTRIBUTING.md](CONTRIBUTING.md)
+
+Komunitas berpegang pada [Kode Etik](CODE_OF_CONDUCT.md). Untuk masalah
+keamanan, jangan buka issue publik — lihat [SECURITY.md](SECURITY.md).
+
+---
+
 ## Roadmap
 
 - **NFC Self-Registration** *(in progress)* — peserta bisa daftar e-KTP mandiri dari HP via Web NFC API

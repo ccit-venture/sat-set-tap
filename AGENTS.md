@@ -15,6 +15,21 @@ Arsitektur tiga lapis:
 2. **raspi/** — server Raspberry Pi (Python)
 3. **docs/** — dokumentasi & diagram wiring
 
+## Standar Kontribusi & Open Source
+
+Repositori ini publik (open source) di `ccit-venture/sat-set-tap`. Perhatikan:
+
+- **Template issue/PR** ada di `.github/` — saat membuat PR wajib melengkapi
+  checklist yang ada di `PULL_REQUEST_TEMPLATE.md`.
+- **CONTRIBUTING.md** berisi panduan fork, clone, sinkron upstream, dan gaya
+  commit. AJAK kontributor baru membaca file ini dan `AGENTS.md`.
+- **Kode Etik** di `CODE_OF_CONDUCT.md` (Contributor Covenant v2.1 — Bahasa
+  Indonesia). Kontak penegakan: mhudyaramadhana@gmail.com (Hudya).
+- **Keamanan**: laporkan via SECURITY.md (jangan buka issue publik).
+- **CI (`.github/workflows/ci.yml`)**: compile-check semua Python + jalankan
+  `tests/test_packet.py` + `pipeline_benchmark.py` di setiap push/PR ke master.
+  Pastikan semua hijau sebelum merge.
+
 ## Struktur Penting (`raspi/`)
 
 Repo ini **monorepo** — akar repo berisi `firmware/`, `raspi/`, `tests/`, `docs/`.

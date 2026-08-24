@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    name: Python Compile & Unit Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r raspi/requirements.txt
+
+      - name: Compile all Python files
+        run: |
+          python3 -m py_compile \
+            tests/*.py \
+            raspi/receiver/*.py \
+            raspi/backend/main.py \
+            raspi/backend/config.py \
+            raspi/backend/routes/*.py \
+            raspi/backend/services/*.py \
+            raspi/simulate_event.py
+
+      - name: Run packet unit test (no Redis needed)
+        run: python3 tests/test_packet.py
+
+      - name: Run pipeline benchmark (mock Redis, no server)
+        run: python3 tests/pipeline_benchmark.py --gates 2 --uids 20 --duration 3
