@@ -16,7 +16,7 @@ import os
 import time
 
 # Tambah path receiver
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "receiver"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "raspi", "receiver"))
 
 PASS = "✓"
 FAIL = "✗"

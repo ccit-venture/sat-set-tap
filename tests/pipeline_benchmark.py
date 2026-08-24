@@ -4,7 +4,7 @@ pipeline_benchmark.py - Mengukur throughput full pipeline receiver
 Berjalan tanpa Redis asli, cocok untuk Windows.
 
 Usage:
-  python tests\pipeline_benchmark.py --gates 4 --duration 5 --uids 100
+  python tests/pipeline_benchmark.py --gates 4 --duration 5 --uids 100
 """
 
 import sys, os, time, threading, random, statistics, json
@@ -64,11 +64,16 @@ class MockRedisConnection:
             return val.get(field)
         return None
 
-    def hset(self, key, field, value):
+    def hset(self, key, field=None, value=None, mapping=None):
         if key not in self.data or not isinstance(self.data[key], dict):
             self.data[key] = {}
-        self.data[key][field] = value
-        return 1
+        if mapping is not None:
+            self.data[key].update({k: str(v) for k, v in mapping.items()})
+            return len(mapping)
+        if field is not None:
+            self.data[key][field] = value
+            return 1
+        raise TypeError("hset membutuhkan field/value atau mapping")
 
     def hincrby(self, key, field, amount=1):
         if key not in self.data or not isinstance(self.data[key], dict):

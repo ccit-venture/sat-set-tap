@@ -104,7 +104,7 @@ Sat-Set-Tap/
 │   ├── gate_node/               # Node gate + PN532 + Servo
 │   ├── relay_node/              # Node relay failover
 │   ├── gateway/                 # Gateway USB Serial ke RPi
-│   └── registration_reader/     # Arduino reader H-1
+│   └── registration/            # Arduino reader H-1 (registration_reader.ino)
 ├── raspi/                       # Kode Raspberry Pi
 │   ├── backend/                 # FastAPI backend (API + WebSocket)
 │   │   ├── main.py              # Entry point — jalankan dengan: python3 -m backend.main
@@ -128,18 +128,23 @@ Sat-Set-Tap/
 │   ├── receiver/                # Core packet processing
 │   │   ├── receiver.py          # Serial reader + packet dispatcher
 │   │   ├── packet.py            # Packet builder & parser
-│   │   ├── redis_handler.py     # Redis operations (store_tap, register, dll)
+│   │   ├── packet_size.py       # Validasi ukuran packet
+│   │   ├── redis_handler.py     # Redis operations (store_tap, import_uids, dll)
 │   │   ├── anomaly.py           # AI Security — deteksi anomali realtime
+│   │   ├── predictor.py         # AI Density Forecast (SMA)
 │   │   ├── lora_receiver.py     # LoRa receiver (pySX127x)
 │   │   └── registration_station.py # CLI registrasi peserta H-1
-│   ├── setup/                   # Systemd service files
+│   ├── setup/                   # Systemd service files + setup script
+│   │   ├── setup_raspi.sh       # Installer sekali-jalan di RPi
 │   │   ├── satset-dashboard.service
 │   │   └── satset-receiver.service
 │   ├── simulate_event.py        # Simulasi event via virtual serial port
 │   └── requirements.txt
-├── tests/                       # Unit tests + mock
+├── tests/                       # Unit tests + benchmark
 │   ├── test_packet.py
 │   ├── test_raspi.py
+│   ├── pipeline_benchmark.py
+│   ├── stress_test.py
 │   └── mock/
 └── docs/                        # Dokumentasi & diagram
 ```
@@ -151,9 +156,10 @@ Sat-Set-Tap/
 ### 1. Raspberry Pi
 
 ```bash
-# Clone repo
-git clone https://github.com/Anwarupee/Sat-Set-Tap.git
-cd Sat-Set-Tap
+# Clone repo (branch master)
+git clone https://github.com/ccit-venture/sat-set-tap.git
+cd sat-set-tap
+git checkout master
 
 # Install Python dependencies
 pip3 install -r raspi/requirements.txt

@@ -5,12 +5,12 @@ Requires=redis.service
 
 [Service]
 Type=simple
-User=rezan
-WorkingDirectory=/home/rezan/TheGate
+User=pi
+WorkingDirectory=/home/pi/sat-set-tap/raspi
 ExecStart=/usr/bin/python3 -m backend.main
 Restart=always
 RestartSec=5
-EnvironmentFile=/home/rezan/TheGate/backend/.env
+EnvironmentFile=/home/pi/sat-set-tap/raspi/backend/.env
 StandardOutput=journal
 StandardError=journal
 

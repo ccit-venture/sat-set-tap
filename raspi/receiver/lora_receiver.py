@@ -6,13 +6,13 @@ Setup sebelum jalan:
   2. Install library:
        sudo apt install -y python3-spidev python3-rpi.gpio
        git clone https://github.com/rpsreal/pySX127x ~/pySX127x
-       cp -r ~/pySX127x/SX127x ~/TheGate/SX127x
+       cp -r ~/pySX127x/SX127x ~/sat-set-tap/raspi/SX127x
 
   3. Pastikan parameter LoRa sama dengan ESP32:
-       Frekuensi : 923 MHz
-       SF        : 7
+       Frekuensi : 433 MHz
+       SF        : 9
        BW        : 125 kHz
-       Sync word : 0xAB
+       Sync word : 0x12
 
 Usage:
   python3 lora_receiver.py
@@ -25,9 +25,9 @@ import logging
 
 # Resolve path relatif ke lokasi file ini, bukan dari mana script dijalankan
 _HERE     = os.path.dirname(os.path.abspath(__file__))
-_THEGATE  = os.path.abspath(os.path.join(_HERE, ".."))  # satu level ke atas = TheGate/
+_THEGATE  = os.path.abspath(os.path.join(_HERE, ".."))  # satu level ke atas = raspi/
 
-# Tambahkan receiver/ dan TheGate/ ke sys.path
+# Tambahkan receiver/ dan raspi/ ke sys.path
 sys.path.insert(0, os.path.join(_HERE))           # untuk packet.py & redis_handler.py
 sys.path.insert(0, _THEGATE)                      # untuk SX127x/
 from packet import parse_hex_packet, Command
@@ -99,7 +99,7 @@ class GateLoRa:
             log.error("Library SX127x tidak ditemukan!")
             log.error("Jalankan setup:")
             log.error("  git clone https://github.com/rpsreal/pySX127x ~/pySX127x")
-            log.error("  cp -r ~/pySX127x/SX127x ~/TheGate/SX127x")
+            log.error("  cp -r ~/pySX127x/SX127x ~/sat-set-tap/raspi/SX127x")
             sys.exit(1)
 
         self._LoRa = LoRa

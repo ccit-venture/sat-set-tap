@@ -1,6 +1,6 @@
 """
 anomaly.py v3 — TheGate AI Security Engine
-Taruh di: ~/TheGate/raspi/anomaly.py
+Taruh di: raspi/receiver/anomaly.py
 
 Metode AI:
   Statistical Anomaly Detection dengan sliding window analysis.

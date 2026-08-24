@@ -23,12 +23,10 @@ from backend.services import gate_service
 from backend.services.redis_service import r
 from backend.services.websocket_manager import manager
 
-# Import AnomalyDetector dari lokasi lama (raspi/anomaly.py)
-# yang sudah kita fix agar state-nya di Redis
+# Import AnomalyDetector & DensityPredictor dari raspi/receiver/
 import sys, os
 _BASE = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.insert(0, os.path.join(_BASE, "receiver"))  # anomaly.py
-sys.path.insert(0, _BASE)  # predictor.py
+sys.path.insert(0, os.path.join(_BASE, "receiver"))  # anomaly.py, predictor.py
 from anomaly import AnomalyDetector
 from predictor import DensityPredictor
 

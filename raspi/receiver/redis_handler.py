@@ -202,3 +202,61 @@ class GateRedis:
             self.r.delete(key)
         for key in self.r.scan_iter("gate:event:*"):
             self.r.delete(key)
+
+    def import_uids(self, rows: list, token_max: int = None) -> dict:
+        """
+        Import massal UID dari list dict (hasil csv.DictReader).
+
+        Setiap row harus punya key 'uid' (8 char hex). Opsional: 'name',
+        'token_max'. Kalau token_max tidak ada / kosong, pakai nilai default.
+
+        Return summary: {"added", "updated", "skipped", "errors"}.
+        """
+        from datetime import datetime
+        now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+        def _normalize_uid(raw: str) -> str:
+            uid = raw.strip().replace(":", "").replace(" ", "").replace("-", "").upper()
+            bytes.fromhex(uid)  # validasi hex
+            return uid[:8]
+
+        added   = 0
+        updated = 0
+        skipped = 0
+        errors  = 0
+        pipe    = self.r.pipeline()
+
+        for row in rows:
+            try:
+                uid = _normalize_uid(str(row["uid"]))
+            except (KeyError, ValueError, TypeError):
+                errors += 1
+                continue
+
+            name       = str(row.get("name", "")).strip()
+            tok_raw    = row.get("token_max")
+            tok        = int(tok_raw) if str(tok_raw).strip().isdigit() else (token_max or 3)
+
+            key = f"gate:registered:{uid}"
+            if self.r.hexists(key, "uid"):
+                updated += 1
+            else:
+                added += 1
+
+            pipe.hset(key, mapping={
+                "uid":           uid,
+                "name":          name,
+                "token_max":     tok,
+                "token_left":    tok,
+                "registered_at": now,
+                "last_entry":    "-",
+            })
+            pipe.sadd("gate:registered:all", uid)
+
+        pipe.execute()
+        return {
+            "added":   added,
+            "updated": updated,
+            "skipped": skipped,
+            "errors":  errors,
+        }
