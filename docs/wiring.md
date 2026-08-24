@@ -68,3 +68,12 @@ Arduino Uno + PN532 (I2C) → colok ke Raspberry Pi via USB
 | D3 | RST | Reset |
 
 DIP Switch PN532: **SW1=ON, SW2=OFF** untuk mode I2C.
+
+---
+
+## Lihat Juga
+
+- [README.md](../README.md) — ringkasan proyek & quick start
+- [architecture.md](architecture.md) — topologi & alur data
+- [hardware.md](hardware.md) — daftar komponen hardware
+- [packet-format.md](packet-format.md) — format packet & parameter LoRa

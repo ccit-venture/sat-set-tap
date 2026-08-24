@@ -84,3 +84,12 @@ Bandwidth : 125 kHz
 Coding Rate: 4/5
 Sync Word : 0x12
 ```
+
+---
+
+## Lihat Juga
+
+- [README.md](../README.md) — ringkasan proyek & quick start
+- [architecture.md](architecture.md) — alur data tap lengkap (sequence diagram)
+- [hardware.md](hardware.md) — komponen hardware & spesifikasi LoRa
+- [wiring.md](wiring.md) — diagram koneksi pin

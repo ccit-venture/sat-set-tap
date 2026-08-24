@@ -44,6 +44,28 @@ raspi/
 └── requirements.txt
 ```
 
+## Dokumentasi Modular (`docs/`)
+
+Pengetahuan dipisah ke beberapa markdown — **jangan** menaruh seluruh detail teknis
+di `README.md`. README hanya berisi ringkasan proyek & quick start (dengan diagram
+**Mermaid**, bukan panah teks).
+
+| File | Isi |
+|------|-----|
+| `docs/architecture.md` | Topologi, alur data (sequence diagram), komponen server |
+| `docs/hardware.md` | Komponen hardware per node |
+| `docs/wiring.md` | Diagram wiring + gambar di `docs/wiring/` |
+| `docs/packet-format.md` | Format packet 12 byte / 24 hex + CRC-16 |
+| `docs/deployment.md` | Setup RPi, Redis AOF, systemd service, `.env` |
+| `docs/dashboard.md` | Fitur Ops View & Data View |
+| `docs/security.md` | Keamanan & deteksi anomali |
+| `docs/roadmap.md` | Pengembangan lanjutan (NFC self-registration) |
+
+Aturan:
+- Semua diagram alur memakai **Mermaid** (` ```mermaid `), bukan simbol `->`.
+- Tambahkan dokumen baru dengan link balik (`## Lihat Juga`) di bagian bawah.
+- Update tabel dokumentasi di `README.md` saat menambah/mengubah file di `docs/`.
+
 ## Cara Menjalankan
 
 Setup deployment di RPi (asumsi: clone di `/home/pi/sat-set-tap`, user `pi`):
