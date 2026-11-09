@@ -1,13 +1,18 @@
 """Unit test v3 — packet 12 bytes (24 char hex)."""
 import sys, os
+import subprocess
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "raspi", "receiver"))
 from packet import parse_hex_packet, build_hex_packet, crc16, Command
 
+failures = 0
+
 def test(name, fn):
+    global failures
     try:
         fn()
         print(f"  ✓  {name}")
     except Exception as e:
+        failures += 1
         print(f"  ✗  {name} — {type(e).__name__}: {e}")
 
 print("=== Packet v3 Tests ===\n")
@@ -125,4 +130,21 @@ def t_size():
 
 test("12 bytes raw / 24 chars hex", t_size)
 
+def t_packet_size_script():
+    script = os.path.join(os.path.dirname(__file__), "..", "raspi", "receiver", "packet_size.py")
+    result = subprocess.run(
+        [sys.executable, script],
+        check=True,
+        capture_output=True,
+        encoding="utf-8",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+    )
+    assert "24 karakter" in result.stdout
+    assert "12 bytes" in result.stdout
+    assert "TAP_REQ" in result.stdout
+
+test("packet_size.py berjalan dengan packet v3", t_packet_size_script)
+
 print("\n=== Done ===")
+if failures:
+    sys.exit(1)

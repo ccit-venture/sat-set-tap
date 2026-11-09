@@ -7,12 +7,13 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../receiver"))
 
-from packet import build_hex_packet, parse_hex_packet, Mode
+from packet import Command, build_hex_packet, parse_hex_packet
 
 # Contoh packet
-EXAMPLE_UID = "12AB34CD56EF7890"
-packet_hex = build_hex_packet(Mode.TX, 1, EXAMPLE_UID)
+EXAMPLE_UID = "12AB34CD"
+packet_hex = build_hex_packet(Command.TAP_REQUEST, 1, EXAMPLE_UID)
 packet_bytes = bytes.fromhex(packet_hex)
+packet = parse_hex_packet(packet_hex)
 
 print("=" * 50)
 print("  ANALISIS UKURAN PACKET LORA")
@@ -29,9 +30,13 @@ print(f"  Ukuran  : {len(packet_bytes)} bytes  ← ini yang LoRa pancarkan")
 
 print("\n[ Breakdown per field ]")
 fields = [
-    ("mode    ", packet_bytes[0:2], "TX=0x0001 / RX=0x0002"),
-    ("gate_id ", packet_bytes[2:4], "Nomor gate"),
-    ("ktp_uid ", packet_bytes[4:12], "UID RFID e-KTP"),
+    ("command  ", packet_bytes[0:1], packet.command_label),
+    ("gate_id  ", packet_bytes[1:2], "Nomor gate"),
+    ("ktp_uid  ", packet_bytes[2:6], "UID RFID e-KTP"),
+    ("hop_count", packet_bytes[6:7], "Sisa hop"),
+    ("reserved ", packet_bytes[7:8], "Cadangan"),
+    ("timestamp", packet_bytes[8:10], "Detik sejak boot"),
+    ("crc16    ", packet_bytes[10:12], "CRC-16/CCITT-FALSE"),
 ]
 for name, b, desc in fields:
     print(f"  {name} : {b.hex().upper():16s}  ({len(b)} bytes)  — {desc}")
@@ -40,8 +45,8 @@ print("\n[ Perbandingan metode pengiriman ]")
 rows = [
     ("Raw bytes (LoRa payload)",  len(packet_bytes),         "Ideal, paling efisien"),
     ("Hex string via Serial",     len(packet_hex.encode()),  "Yang sekarang dipakai ke RPi"),
-    ("Teks biasa (nama+uid)",     45,                        "Contoh: 'GATE1 12AB34CD56EF7890'"),
-    ("JSON",                      80,                        "Contoh: {mode:TX,gate:1,uid:...}"),
+    ("Teks biasa (nama+uid)",     45,                        "Contoh: 'GATE1 12AB34CD'"),
+    ("JSON",                      80,                        "Contoh: {command:TAP_REQ,gate:1,uid:...}"),
 ]
 for label, size, note in rows:
     bar = "█" * size
